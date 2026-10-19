@@ -217,6 +217,8 @@ body{padding-bottom:92px}
 .pchk span{width:22px;height:22px;border-radius:50%;border:2px solid var(--sub);display:inline-flex;align-items:center;justify-content:center;color:transparent;font-size:14px}
 .pchk.on{background:#4fb8e0;border-color:#4fb8e0;color:#fff}
 .pchk.on span{background:#fff;border-color:#fff;color:#2a8fb8}
+[hidden]{display:none!important}
+#siteList{height:min(300px,38vh);height:min(300px,38dvh);overflow-y:auto;overscroll-behavior:contain}
 </style>
 </head>
 <body>
@@ -277,12 +279,13 @@ body{padding-bottom:92px}
     <h2>現場の管理</h2>
     <div id="siteList"></div>
     <div style="border-top:1px solid var(--line);padding-top:10px" class="stack">
-      <div><label for="sName">現場名</label><input id="sName" type="text"></div>
+      <div><label for="sName">現場名</label><input id="sName" type="text" placeholder="＋ 現場名を入力して追加"></div>
+      <div id="sMore" class="stack" hidden>
       <div><label for="sAddr">住所・メモ</label><input id="sAddr" type="text"></div>
       <div class="row">
         <div style="flex-basis:100%"><label>色</label><input id="sColor" type="hidden" value="#2f7d6d"><div class="sw" id="sw"></div></div>
         <button type="button" id="sCancel" hidden style="align-self:end">やめる</button><button type="button" class="pri" id="sAdd" style="align-self:end">現場を追加</button>
-      </div>
+      </div></div>
     </div>
     <button type="button" id="dlgClose">閉じる</button>
   </div>
@@ -480,7 +483,7 @@ const act=()=>db.sites.filter(s=>!s.fin);
 function finSite(id,v){const s=site(id);if(!s)return;s.fin=v;if(v&&filter===id)filter=null;if(editId===id)setEdit(null);save();render();renderSites()}
 function setEdit(id){editId=id;const s=id?site(id):null;
   $('sName').value=s?s.name:'';$('sAddr').value=s?s.addr:'';if(s)setColor(s.color);
-  $('sAdd').textContent=s?'保存':'現場を追加';$('sCancel').hidden=!s;if(s)$('sName').focus()}
+  $('sAdd').textContent=s?'保存':'現場を追加';$('sCancel').hidden=!s;$('sMore').hidden=!s;if(s)$('sName').focus()}
 function removeSite(id,cancel){const s=site(id);if(!s)return;const n=db.visits.filter(v=>v.siteId===id).length;
   if(n&&!confirm(`「${s.name}」と、その予定${n}件を削除します。よろしいですか?`)){cancel();return}
   db.sites=db.sites.filter(x=>x.id!==id);db.visits=db.visits.filter(v=>v.siteId!==id);
@@ -588,6 +591,9 @@ setColor(nextColor());
 /* ---- 予定の追加・編集 ---- */
 let vColor=null;let colorFor='site',fromEdit=false,newSel=null;
 $('dlg').addEventListener('close',()=>{fromEdit=false});
+$('sName').addEventListener('focus',()=>{$('sMore').hidden=false});
+$('sName').addEventListener('click',()=>{$('sMore').hidden=false});
+{const dg=$('dlg'),sm=dg.showModal.bind(dg);dg.showModal=()=>{sm();if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();if(!editId)$('sMore').hidden=true}}
 function vcol(v){return v.color||(site(v.siteId)||{}).color||'#888888'}
 function vtitle(v){return (site(v.siteId)||{}).name||''}
 function renderVSw(){const sc=site($('fSite').value),all=[...PALETTE,...db.colors];
